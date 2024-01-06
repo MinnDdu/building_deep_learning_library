@@ -2,7 +2,7 @@
 
 """
 import numpy as np
-from minsoonet.tensor import Tensor
+from tensor import Tensor
 
 class Layer:
     def __init__(self) -> None:
@@ -12,7 +12,6 @@ class Layer:
     def forward(self, inputs: Tensor) -> Tensor:
         """
         Forward Propagation
-
         """
         raise NotImplementedError
     
@@ -24,6 +23,7 @@ class Layer:
     
 class Linear(Layer):
     """
+    Subclass of Layer class
     A simple linear layer doing linear regression
     outputs = weights X inputs + bias
     inputs - (batch_size, input_size)
@@ -54,3 +54,43 @@ class Linear(Layer):
         self.grads['b'] = np.sum(grad, axis=0) # Since we are using batch dimension
         self.grads['w'] = np.matmul(grad, self.inputs)
         return np.matmul(self.params['w'], grad)
+    
+class Activation(Layer):
+    """
+    Subclass of Layer class
+    Activation Layer gives a non-linearity to the inputs
+    """
+    def __init__(self, f, f_prime):
+        super().__init__()
+        self.f = f
+        self.f_prime = f_prime
+
+    def forward(self, inputs: Tensor) -> Tensor:
+        self.inputs = inputs # save copy of the inputs for later backprop
+        return self.f(inputs)
+    
+    def backward(self, grad: Tensor) -> Tensor:
+        """
+        If y = f(x) and f(x) = g(z)
+        dy/dz = f'(x) * g'(z) - The chain rule
+        """
+        return grad * self.f_prime(self.inputs)
+
+def tanh(x: Tensor) -> Tensor:
+    return np.tanh(x)
+
+def tanh_prime(x: Tensor) -> Tensor:
+    """
+    f(x) = tanh(x)
+    f'(x) = sech^2(x) = 1 - tanh^2(x)
+    """
+    y = tanh(x)
+    return 1 - y**2
+
+class Tanh(Activation):
+    """
+    Subclass of Activation class
+    Hyperbolic Tangent Activation Function
+    """
+    def __init__(self):
+        super().__init__(tanh, tanh_prime)
