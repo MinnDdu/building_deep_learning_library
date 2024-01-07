@@ -18,3 +18,9 @@ class NeuralNetwork:
         for layer in reversed(self.layers):
             grad = layer.backward(grad)
         return grad
+
+    def params_and_grads(self) -> [tuple(Tensor, Tensor)]:
+        for layer in self.layers:
+            for name, param in layer.params.items():
+                grad = layer.grads[name]
+                yield param, grad
